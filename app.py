@@ -14,6 +14,9 @@ app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_HTTPONLY"] = True
+# Render sets RENDER=true and serves the site over https
+if os.getenv("RENDER"):
+    app.config["SESSION_COOKIE_SECURE"] = True
 
 # after login each role goes to its own page
 HOME_PAGE = {
