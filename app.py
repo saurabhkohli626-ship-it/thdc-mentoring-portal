@@ -25,6 +25,27 @@ HOME_PAGE = {
     "director": "director_home",
 }
 
+# public demo: "Try as ..." buttons on the login page, no password needed
+DEMO_MODE = os.getenv("DEMO_MODE") == "true"
+DEMO_USERS = {
+    "student": "student1@thdc.test",
+    "faculty": "faculty1@thdc.test",
+    "director": "director@thdc.test",
+}
+
+
+@app.context_processor
+def inject_demo():
+    return {"demo_mode": DEMO_MODE, "is_demo": session.get("demo", False)}
+
+
+def block_in_demo():
+    """Demo visitors can look around but cannot change accounts."""
+    if session.get("demo"):
+        flash("This is disabled in the demo.")
+        return True
+    return False
+
 
 def login_required(*roles):
     def decorator(view):
@@ -48,6 +69,8 @@ def index():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "GET" and "user_id" in session:
+        return redirect(url_for(HOME_PAGE[session["role"]]))
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
@@ -70,9 +93,27 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/demo/<role>")
+def demo_login(role):
+    if not DEMO_MODE or role not in DEMO_USERS:
+        abort(404)
+    user = query("SELECT * FROM users WHERE email = %s", (DEMO_USERS[role],), one=True)
+    if not user:
+        abort(404)
+    session.clear()
+    session["user_id"] = user["id"]
+    session["name"] = user["name"]
+    session["role"] = user["role"]
+    session["demo"] = True
+    return redirect(url_for(HOME_PAGE[user["role"]]))
+
+
 @app.route("/account/password", methods=["GET", "POST"])
 @login_required()
 def change_password():
+    if session.get("demo"):
+        block_in_demo()
+        return redirect(url_for("index"))
     if request.method == "POST":
         current = request.form.get("current", "")
         new = request.form.get("new", "")
@@ -399,6 +440,8 @@ def faculty_list():
 @login_required("director")
 def add_user():
     form = request.form
+    if request.method == "POST" and block_in_demo():
+        return redirect(url_for("add_user"))
     if request.method == "POST":
         name = form.get("name", "").strip()
         email = form.get("email", "").strip().lower()
@@ -440,6 +483,8 @@ def add_user():
 @login_required("director")
 def change_mentor(student_id):
     student_for_staff(student_id)
+    if block_in_demo():
+        return redirect(url_for("student_detail", student_id=student_id))
     mentor_id = to_number(request.form.get("mentor_id"), int)
     if mentor_id and not query("SELECT id FROM users WHERE id = %s AND role = 'faculty'",
                                (mentor_id,), one=True):

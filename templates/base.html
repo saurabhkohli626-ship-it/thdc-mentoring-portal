@@ -19,8 +19,8 @@
         <a href="{{ url_for('director_students') }}">Students</a>
         <a href="{{ url_for('add_user') }}">Add user</a>
       {% endif %}
-      <span>{{ session.name }} <small>({{ session.role }})</small></span>
-      <a href="{{ url_for('change_password') }}">Change password</a>
+      <span>{{ session.name }} <small>({{ session.role }}{% if is_demo %}, demo{% endif %})</small></span>
+      {% if not is_demo %}<a href="{{ url_for('change_password') }}">Change password</a>{% endif %}
       <a href="{{ url_for('logout') }}">Logout</a>
     </nav>
     {% endif %}

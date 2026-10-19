@@ -14,5 +14,16 @@
     <button type="submit">Login</button>
   </form>
   <p class="muted">Students, faculty and director use the same login page.</p>
+
+  {% if demo_mode %}
+  <div class="demo-box">
+    <p><b>Just looking around?</b> Try the portal without an account:</p>
+    <div class="demo-buttons">
+      <a class="btn light" href="{{ url_for('demo_login', role='student') }}">Try as Student</a>
+      <a class="btn light" href="{{ url_for('demo_login', role='faculty') }}">Try as Faculty</a>
+      <a class="btn light" href="{{ url_for('demo_login', role='director') }}">Try as Director</a>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -159,3 +159,8 @@ header nav { flex-wrap: wrap; }
 
 .inline-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .inline-form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+
+.demo-box { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+.demo-box p { margin: 0 0 10px; }
+.demo-buttons { display: flex; flex-direction: column; gap: 8px; }
+.demo-buttons .btn { text-align: center; }
