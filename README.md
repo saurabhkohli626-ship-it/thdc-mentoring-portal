@@ -2,6 +2,9 @@
 
 A web portal for the student mentoring process of THDC Institute of Hydropower Engineering & Technology, Tehri.
 
+**Live demo:** https://thdc-mentoring-portal.onrender.com
+(hosted on Render free plan with the database on Aiven MySQL, so the first load after a while can take up to a minute)
+
 Earlier the mentoring form was a paper / single HTML page, so the data stayed with the student and the mentor or director had no way to see it together. In this project I built a backend for it using **Python (Flask)** and **MySQL**. There is one server and one database, and after login every user gets their own portal based on their role.
 
 ## Features
@@ -35,6 +38,7 @@ Earlier the mentoring form was a paper / single HTML page, so the data stayed wi
 | Database | MySQL 8 (mysql-connector-python) |
 | Frontend | HTML, CSS, JavaScript (Jinja templates) |
 | Tools | Jupyter Notebook, Git, GitHub |
+| Hosting | Render (web app, gunicorn), Aiven (MySQL with SSL) |
 
 ## Database
 
