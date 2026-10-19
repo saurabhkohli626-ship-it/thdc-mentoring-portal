@@ -107,3 +107,31 @@ table.list thead th { background: var(--mist); }
 }
 .stat b { display: block; font-size: 2rem; color: var(--lake-dark); }
 .stat span { color: var(--muted); }
+
+.flash.ok { background: #e6f4ea; border-left-color: #2e7d4f; }
+
+.notice {
+  background: #fff4d6;
+  border-left: 4px solid #d9b44a;
+  padding: 10px 14px;
+  border-radius: 4px;
+}
+
+a { color: var(--lake); }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.actions form { margin: 0; }
+button.secondary { background: #fff; color: var(--lake); border: 1.5px solid var(--lake); }
+button.secondary:hover { background: var(--mist); }
+
+.remark-form { margin-bottom: 16px; }
+.remark-form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  margin-bottom: 8px;
+}
+.remark { border-top: 1px solid var(--line); padding: 10px 0; }
+.remark p { margin: 0 0 4px; white-space: pre-line; }

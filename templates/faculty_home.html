@@ -4,6 +4,11 @@
 {% block content %}
 <h2>My mentees ({{ students|length }})</h2>
 
+{% set pending = students|selectattr("form_status", "equalto", "submitted")|list %}
+{% if pending %}
+<p class="notice">{{ pending|length }} form(s) waiting for your review.</p>
+{% endif %}
+
 <div class="card">
   {% if students %}
   <table class="list">
@@ -14,7 +19,7 @@
       {% for s in students %}
       <tr>
         <td>{{ s.roll_no }}</td>
-        <td>{{ s.name }}</td>
+        <td><a href="{{ url_for('student_detail', student_id=s.id) }}">{{ s.name }}</a></td>
         <td>{{ s.branch }}</td>
         <td>{{ s.cgpa if s.cgpa is not none else "-" }}</td>
         <td>{{ s.backlogs }}</td>

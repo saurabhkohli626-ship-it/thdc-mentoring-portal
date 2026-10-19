@@ -21,9 +21,9 @@
   </header>
 
   <main>
-    {% with messages = get_flashed_messages() %}
-      {% for msg in messages %}
-        <div class="flash">{{ msg }}</div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, msg in messages %}
+        <div class="flash {{ category }}">{{ msg }}</div>
       {% endfor %}
     {% endwith %}
 

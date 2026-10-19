@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }}{% endblock %}
+
+{% block content %}
+<p><a href="{{ url_for('index') }}">&larr; Back</a></p>
+<h2>{{ student.name }} <small class="muted">{{ student.roll_no }}</small></h2>
+
+<div class="card">
+  <table class="info">
+    <tr><th>Email</th><td>{{ student.email }}</td></tr>
+    <tr><th>Branch / Class</th><td>{{ student.branch }} / {{ student.class_name }}</td></tr>
+    <tr><th>Mentor</th><td>{{ student.mentor_name or "Not assigned" }}</td></tr>
+    <tr><th>CGPA</th><td>{{ student.cgpa if student.cgpa is not none else "-" }}</td></tr>
+    <tr><th>Backlogs</th><td>{{ student.backlogs }}</td></tr>
+    <tr><th>Placement</th><td>{{ student.placement_status or "-" }}</td></tr>
+    <tr><th>Mentoring form</th>
+        <td><span class="status {{ student.form_status or 'none' }}">{{ student.form_status or "not started" }}</span>
+            {% if student.submitted_at %}<small class="muted">submitted {{ student.submitted_at.strftime('%d %b %Y') }}</small>{% endif %}
+        </td></tr>
+  </table>
+
+  <div class="actions">
+    {% if student.form_status %}
+      <a class="btn" href="{{ url_for('view_form', student_id=student.id) }}">View full form</a>
+    {% endif %}
+    {% if session.role == 'faculty' and student.form_status == 'submitted' %}
+      <form method="post" action="{{ url_for('mark_reviewed', student_id=student.id) }}">
+        <button type="submit" class="secondary">Mark as reviewed</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<h3>Mentor remarks</h3>
+<div class="card">
+  {% if session.role == 'faculty' %}
+  <form method="post" action="{{ url_for('add_remark', student_id=student.id) }}" class="remark-form">
+    <textarea name="remark" rows="3" placeholder="Write a remark / action plan after the meeting" required></textarea>
+    <button type="submit">Add remark</button>
+  </form>
+  {% endif %}
+
+  {% for r in remarks %}
+    <div class="remark">
+      <p>{{ r.remark }}</p>
+      <small class="muted">{{ r.faculty_name }} &middot; {{ r.created_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+    </div>
+  {% else %}
+    <p class="muted">No remarks yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

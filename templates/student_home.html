@@ -21,4 +21,16 @@
     </a>
   </p>
 </div>
+
+<h3>Remarks from my mentor</h3>
+<div class="card">
+  {% for r in remarks %}
+    <div class="remark">
+      <p>{{ r.remark }}</p>
+      <small class="muted">{{ r.faculty_name }} &middot; {{ r.created_at.strftime('%d %b %Y') }}</small>
+    </div>
+  {% else %}
+    <p class="muted">No remarks yet.</p>
+  {% endfor %}
+</div>
 {% endblock %}
