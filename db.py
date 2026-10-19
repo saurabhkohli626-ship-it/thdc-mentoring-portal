@@ -3,7 +3,8 @@ import os
 import mysql.connector
 from dotenv import load_dotenv
 
-load_dotenv()
+# read .env from the project folder, even if the app is started from somewhere else (hosting)
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 
 def get_connection(use_database=True):

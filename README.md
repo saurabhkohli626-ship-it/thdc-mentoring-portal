@@ -55,7 +55,8 @@ Full schema: [`schema.sql`](schema.sql)
 app.py               Flask routes (login, student, faculty, director)
 db.py                MySQL connection helpers
 schema.sql           tables
-02_database.ipynb    creates the database and demo users
+init_db.py           creates the tables and demo users
+02_database.ipynb    same database setup, step by step in Jupyter
 templates/           HTML pages
 static/style.css     styling
 ```
@@ -70,7 +71,11 @@ static/style.css     styling
    pip install -r requirements.txt
    ```
 3. Copy `.env.example` to `.env` and put your MySQL password and a secret key in it.
-4. Open `02_database.ipynb` in Jupyter and run all cells. It creates the database, the tables and some demo users.
+4. Create the database, tables and demo users:
+   ```
+   python init_db.py
+   ```
+   (`02_database.ipynb` does the same step by step in Jupyter.)
 5. Start the server:
    ```
    python app.py

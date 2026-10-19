@@ -4,14 +4,11 @@ import json
 import os
 from functools import wraps
 
-from dotenv import load_dotenv
 from flask import (Flask, render_template, request, redirect, url_for, session, flash, abort,
                    jsonify, Response)
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from db import query, execute
-
-load_dotenv()
+from db import query, execute  # db.py also loads the .env file
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
@@ -185,11 +182,11 @@ def save_form():
 
     execute("""
         INSERT INTO mentoring_forms (student_id, data, status, submitted_at)
-        VALUES (%s, %s, %s, IF(%s, NOW(), NULL)) AS new
+        VALUES (%s, %s, %s, IF(%s, NOW(), NULL))
         ON DUPLICATE KEY UPDATE
-            data = new.data,
-            status = new.status,
-            submitted_at = COALESCE(new.submitted_at, mentoring_forms.submitted_at)
+            data = VALUES(data),
+            status = VALUES(status),
+            submitted_at = COALESCE(VALUES(submitted_at), submitted_at)
     """, (student["id"], json.dumps(data), status, submitting))
 
     # copy a few fields to the students table for faculty / director reports
