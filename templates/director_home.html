@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Director{% endblock %}
+
+{% block content %}
+<h2>Overview</h2>
+
+<div class="stats">
+  <div class="stat"><b>{{ counts.get('student', 0) }}</b><span>Students</span></div>
+  <div class="stat"><b>{{ counts.get('faculty', 0) }}</b><span>Faculty mentors</span></div>
+</div>
+
+<h3>Mentors</h3>
+<div class="card">
+  <table class="list">
+    <thead><tr><th>Name</th><th>Email</th><th>Mentees</th></tr></thead>
+    <tbody>
+      {% for f in faculty %}
+      <tr><td>{{ f.name }}</td><td>{{ f.email }}</td><td>{{ f.mentees }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

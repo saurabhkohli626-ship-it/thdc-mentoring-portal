@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Student{% endblock %}
+
+{% block content %}
+<h2>Welcome, {{ student.name }}</h2>
+
+<div class="card">
+  <table class="info">
+    <tr><th>Roll No.</th><td>{{ student.roll_no }}</td></tr>
+    <tr><th>Branch</th><td>{{ student.branch }}</td></tr>
+    <tr><th>Class</th><td>{{ student.class_name }}</td></tr>
+    <tr><th>Mentor</th><td>{{ student.mentor_name or "Not assigned yet" }}</td></tr>
+    <tr><th>Mentoring form</th>
+        <td><span class="status {{ student.form_status or 'none' }}">{{ student.form_status or "not started" }}</span>
+            {% if student.form_updated %}<small class="muted">last saved {{ student.form_updated.strftime('%d %b %Y, %I:%M %p') }}</small>{% endif %}
+        </td></tr>
+  </table>
+</div>
+{% endblock %}
