@@ -15,5 +15,10 @@
             {% if student.form_updated %}<small class="muted">last saved {{ student.form_updated.strftime('%d %b %Y, %I:%M %p') }}</small>{% endif %}
         </td></tr>
   </table>
+  <p style="margin-top:16px">
+    <a class="btn" href="{{ url_for('student_form') }}">
+      {% if student.form_status %}Open my mentoring form{% else %}Fill mentoring form{% endif %}
+    </a>
+  </p>
 </div>
 {% endblock %}

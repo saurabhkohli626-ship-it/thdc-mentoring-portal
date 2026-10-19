@@ -1,11 +1,12 @@
+import json
 import os
 from functools import wraps
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, flash, abort
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort, jsonify
 from werkzeug.security import check_password_hash
 
-from db import query
+from db import query, execute
 
 load_dotenv()
 
@@ -77,6 +78,97 @@ def student_home():
         WHERE s.user_id = %s
     """, (session["user_id"],), one=True)
     return render_template("student_home.html", student=student)
+
+
+def current_student():
+    return query("""
+        SELECT s.*, u.name, u.email
+        FROM students s JOIN users u ON u.id = s.user_id
+        WHERE s.user_id = %s
+    """, (session["user_id"],), one=True)
+
+
+def load_form(student_id):
+    row = query("SELECT data FROM mentoring_forms WHERE student_id = %s", (student_id,), one=True)
+    if not row:
+        return None
+    data = row["data"]
+    if isinstance(data, (bytes, bytearray)):
+        data = data.decode()
+    return json.loads(data)
+
+
+def to_number(value, kind=float):
+    try:
+        return kind(value)
+    except (TypeError, ValueError):
+        return None
+
+
+@app.route("/student/form")
+@login_required("student")
+def student_form():
+    student = current_student()
+    saved = load_form(student["id"])
+    if saved is None:
+        # first time: fill what we already know about the student
+        saved = {
+            "name": student["name"],
+            "email": student["email"],
+            "roll": student["roll_no"] or "",
+            "branch": student["branch"] or "",
+            "class": student["class_name"] or "",
+            "admyear": student["admitted_year"] or "",
+        }
+    return render_template("form.html", saved=saved, readonly=False,
+                           back_url=url_for("student_home"))
+
+
+@app.route("/student/form", methods=["POST"])
+@login_required("student")
+def save_form():
+    student = current_student()
+    body = request.get_json(silent=True) or {}
+    data = body.get("data")
+    if not isinstance(data, dict):
+        return jsonify(error="no form data received"), 400
+
+    old = query("SELECT status FROM mentoring_forms WHERE student_id = %s",
+                (student["id"],), one=True)
+    submitting = body.get("action") == "submit"
+    if submitting or (old and old["status"] != "draft"):
+        # once sent to the mentor, every change goes back to the mentor
+        status = "submitted"
+    else:
+        status = "draft"
+
+    execute("""
+        INSERT INTO mentoring_forms (student_id, data, status, submitted_at)
+        VALUES (%s, %s, %s, IF(%s, NOW(), NULL)) AS new
+        ON DUPLICATE KEY UPDATE
+            data = new.data,
+            status = new.status,
+            submitted_at = COALESCE(new.submitted_at, mentoring_forms.submitted_at)
+    """, (student["id"], json.dumps(data), status, submitting))
+
+    # copy a few fields to the students table for faculty / director reports
+    cgpa = to_number(data.get("cgpa"))
+    if cgpa is not None and not 0 <= cgpa <= 10:
+        cgpa = None
+    backlogs = 0
+    if "Yes" in data.get("backlog", []):
+        backlogs = to_number(data.get("backlogs_n"), int) or 0
+    placement = (data.get("pstatus") or [None])[0]
+
+    execute("""
+        UPDATE students
+        SET cgpa = %s, backlogs = %s, placement_status = %s,
+            branch = COALESCE(NULLIF(%s, ''), branch),
+            class_name = COALESCE(NULLIF(%s, ''), class_name)
+        WHERE id = %s
+    """, (cgpa, backlogs, placement, data.get("branch", ""), data.get("class", ""), student["id"]))
+
+    return jsonify(status=status)
 
 
 @app.route("/faculty")

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THDC-IHET, Tehri – Student Mentoring Form</title>
+<style>
+:root{--ink:#16222b;--lake:#17586b;--lake-d:#0f3f4e;--mist:#eef3f5;--line:#c5d2d8;--warn:#fff4d6;--warn-b:#d9b44a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--mist);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3,h4{font-family:Georgia,"Times New Roman",serif;margin:0}
+header{background:var(--lake-d);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+header nav{display:flex;gap:16px}header nav a{color:#fff}
+#savestate{float:right;font-size:.85rem;color:#51636d}
+header h1{font-size:1.5rem}header p{margin:2px 0 0;opacity:.85}
+.prog{background:#fff;border-bottom:1px solid var(--line);padding:10px 24px;position:sticky;top:0;z-index:5}
+.prog b{font-family:Georgia,serif}
+.bar{height:6px;background:var(--mist);border-radius:3px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--lake);transition:width .25s}
+.wrap{display:grid;grid-template-columns:270px 1fr;gap:24px;max-width:1280px;margin:20px auto;padding:0 16px}
+aside nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:2px}
+aside button{display:flex;gap:10px;align-items:center;text-align:left;border:0;background:none;padding:7px 10px;border-radius:6px;font:inherit;color:var(--ink);cursor:pointer}
+aside button .n{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--lake);display:grid;place-items:center;font-size:.8rem;color:var(--lake)}
+aside button:hover{background:#dfe9ed}
+aside button.on{background:#fff;font-weight:600;box-shadow:inset 3px 0 var(--lake)}
+aside button.on .n,aside button.done .n{background:var(--lake);color:#fff}
+form{min-width:0}
+.page{display:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:26px 28px}
+.page.on{display:block}
+.page>h2{font-size:1.4rem;color:var(--lake-d);padding-bottom:10px;margin-bottom:18px;border-bottom:2px solid var(--lake)}
+h3{font-size:1.1rem;margin:18px 0 8px}h4{font-size:.95rem;margin:16px 0 6px;color:var(--lake)}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:14px}
+.f{display:flex;flex-direction:column;gap:4px;font-size:.88rem;font-weight:600}
+.f.w{grid-column:1/-1}
+.f small{font-weight:400;color:#51636d}
+input,select,textarea{font:inherit;font-weight:400;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--lake);outline-offset:1px}
+textarea{resize:vertical}
+.opts,.checks{display:flex;flex-wrap:wrap;gap:6px 18px;font-weight:400}
+.opts label,.checks label{display:flex;align-items:center;gap:6px;font-weight:400}
+.opts input,.checks input{width:auto}
+.q{margin:14px 0 6px;font-weight:600;font-size:.92rem}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;margin:6px 0 10px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{border:1px solid var(--line);padding:4px;font-size:.85rem;vertical-align:middle}
+thead th{background:var(--mist);padding:8px;text-align:left;font-weight:600}
+tbody th{background:#f8fafb;text-align:left;padding:6px 8px;font-weight:600;white-space:nowrap}
+td.sn{text-align:center;width:48px}
+td input,td select,td textarea{border:0;border-radius:0;padding:6px;min-width:90px}
+.mh{min-width:70px;background:var(--mist);font-weight:600}
+.note{background:var(--warn);border-left:4px solid var(--warn-b);padding:10px 14px;border-radius:4px;font-size:.88rem;margin:10px 0}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.tabs button{border:1px solid var(--lake);background:#fff;color:var(--lake);padding:6px 12px;border-radius:999px;font:inherit;font-size:.85rem;cursor:pointer}
+.tabs button.on{background:var(--lake);color:#fff}
+.sem{display:none}.sem.on{display:block}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+button.pri,button.sec,button.ghost{font:inherit;font-weight:600;padding:10px 20px;border-radius:8px;cursor:pointer;border:1.5px solid var(--lake)}
+button.pri{background:var(--lake);color:#fff}button.pri:hover{background:var(--lake-d)}
+button.sec{background:#fff;color:var(--lake)}button.sec:disabled{opacity:.4;cursor:default}
+button.ghost{background:none;color:var(--lake);padding:6px 12px;font-size:.85rem}
+.end{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+@media(max-width:860px){
+ .wrap{grid-template-columns:1fr}
+ aside{min-width:0}
+ aside nav{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px}
+ aside button{flex:none;padding:4px}aside button .t{display:none}
+ .page{padding:18px 14px}.sigs{grid-template-columns:1fr}
+}
+@media print{
+ body{background:#fff;font-size:12px}header{background:none;color:#000;padding:0 0 8px;border-bottom:2px solid #000}
+ .prog,aside,.pager,.tabs,.ghost,.end,header nav{display:none!important}
+ .wrap{display:block;margin:0;padding:0;max-width:none}
+ .page,.sem{display:block!important}
+ .page{border:0;padding:0;break-before:page}.page:first-of-type{break-before:auto}
+ .tw{overflow:visible;border:0}table{min-width:0}
+ input,select,textarea{border:0;border-bottom:1px solid #000;border-radius:0;background:none;padding:2px}
+ td input,td select,td textarea{border:0;min-width:0}
+ .mh{background:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>THDC-IHET, Tehri</h1>
+    <p>Student Mentoring Form{% if readonly %} - {{ student_name }}{% endif %}</p>
+  </div>
+  <nav>
+    <a href="{{ back_url }}">Back</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+  </nav>
+</header>
+<div class="prog"><span id="savestate"></span><b id="ptitle"></b> <span id="pcount"></span><div class="bar"><i id="pbar"></i></div></div>
+
+<div class="wrap">
+<aside><nav id="nav" aria-label="Form sections"></nav></aside>
+
+<form id="form" autocomplete="off" novalidate>
+
+<!-- 1 -->
+<section class="page" data-title="Personal Details">
+  <h2>1. Personal Details</h2>
+  <div class="row">
+    <label class="f w">Name<input name="name" required></label>
+    <label class="f">Class<input name="class" required></label>
+    <label class="f">Roll No.<input name="roll" required></label>
+    <label class="f">Admitted branch<input name="branch" required></label>
+    <label class="f">Date of birth<input type="date" name="dob" required></label>
+    <label class="f">Blood group<input name="blood" maxlength="4" placeholder="e.g. B+"></label>
+    <label class="f">Admitted year in THDC-IHET<input type="number" name="admyear" min="2000" max="2100" placeholder="e.g. 2024"></label>
+    <label class="f">Category<input name="category" list="cats"></label>
+    <label class="f">Parents' annual income (₹)<input type="number" name="income" min="0"></label>
+    <label class="f w">Type of scholarship<input name="schtype"></label>
+    <label class="f">Aadhaar card no.<input name="aadhaar" data-nosave inputmode="numeric" pattern="\d{12}" maxlength="12" title="12 digits"></label>
+    <label class="f w">Any medical problem<input name="medical"></label>
+    <label class="f w">Allergy from specific medicine / any other item<input name="allergy"></label>
+  </div>
+  <datalist id="cats"><option>General</option><option>SC</option><option>ST</option><option>OBC</option><option>EWS</option></datalist>
+</section>
+
+<!-- 2 -->
+<section class="page" data-title="Educational Information">
+  <h2>2. Educational Information</h2>
+  <div id="edu"></div>
+</section>
+
+<!-- 3 -->
+<section class="page" data-title="Contact Details">
+  <h2>3. Contact Details</h2>
+  <div class="row">
+    <label class="f w">Address<textarea name="address" rows="3"></textarea></label>
+    <label class="f">Email ID<input type="email" name="email" required></label>
+    <label class="f">Mobile number<input type="tel" name="mobile" inputmode="numeric" pattern="[0-9+ ]{10,14}" required></label>
+  </div>
+  <h3>Details of family members</h3>
+  <div id="family"></div>
+  <p class="q">Parents or any relative from industry / Govt. organization / social org. / educational institute?</p>
+  <div class="opts"><label><input type="radio" name="relative" value="Yes"> Yes</label><label><input type="radio" name="relative" value="No"> No</label></div>
+  <div class="row" style="margin-top:12px">
+    <label class="f">Name of relative<input name="relname"></label>
+    <label class="f">Relation<input name="relrel"></label>
+    <label class="f w">Give details<textarea name="reldetails" rows="2"></textarea></label>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="page" data-title="Fees Details">
+  <h2>4. Fees Details: Fees Paid Status</h2>
+  <div id="fees"></div>
+</section>
+
+<!-- 5 -->
+<section class="page" data-title="Scholarship Details">
+  <h2>5. Scholarship Details</h2>
+  <p class="q">Whether you are eligible for scholarship</p>
+  <div class="opts"><label><input type="radio" name="eligible" value="Yes"> Yes</label><label><input type="radio" name="eligible" value="No"> No</label></div>
+  <div class="row" style="margin-top:12px">
+    <label class="f w">If yes, scholarship type <small>SC / ST / NT / VJ / OBC / SBC / EBC / Free-ship / Minority / AICTE / Other</small><input name="schemetype"></label>
+    <label class="f">Date of submission of scholarship form with all required documents<input type="date" name="schdate"></label>
+  </div>
+  <h3>Bank account details</h3>
+  <div class="row">
+    <label class="f">Bank name<input name="bank"></label>
+    <label class="f">Branch<input name="bankbranch"></label>
+    <label class="f">Account no.<input name="acct" data-nosave inputmode="numeric"></label>
+    <label class="f">IFSC code<input name="ifsc" maxlength="11" style="text-transform:uppercase"></label>
+  </div>
+  <div id="schform"></div>
+</section>
+
+<!-- 6 -->
+<section class="page" data-title="Registration Form Filled">
+  <h2>6. Details of Registration Form Filled</h2>
+  <div class="row">
+    <label class="f">Receipt no.<input name="reg_receipt"></label>
+    <label class="f">Date<input type="date" name="reg_date"></label>
+    <label class="f">Enrollment number<input name="reg_enrol"></label>
+  </div>
+  <div class="note">Select Yes or No in the table.</div>
+  <div id="reg"></div>
+  <label class="f">If form is not filled, give reason<textarea name="reg_reason" rows="2"></textarea></label>
+  <div class="sigs"><label class="f">Signature of student<input name="reg_sig_s"></label><label class="f">Signature of parents<input name="reg_sig_p"></label></div>
+</section>
+
+<!-- 7 -->
+<section class="page" data-title="Exam Form Filled">
+  <h2>7. Details of Exam Form Filled</h2>
+  <div class="row">
+    <label class="f">Receipt no.<input name="ex_receipt"></label>
+    <label class="f">Date<input type="date" name="ex_date"></label>
+    <label class="f">Enrollment number<input name="ex_enrol"></label>
+  </div>
+  <div class="note">Select Yes or No in the table.</div>
+  <div id="exam"></div>
+  <label class="f">If form is not filled, give reason<textarea name="ex_reason" rows="2"></textarea></label>
+  <div class="sigs"><label class="f">Signature of student<input name="ex_sig_s"></label><label class="f">Signature of parents<input name="ex_sig_p"></label></div>
+</section>
+
+<!-- 8 -->
+<section class="page" data-title="Academic Performance">
+  <h2>8. Academic Performance</h2>
+  <div id="semesters"></div>
+  <div class="note"><b>Note:</b> Even if a student gets zero marks in CT-1, CT-2 and makeup exams, marks for assignment submission and attendance must be reflected in the Total Internal Theory Marks column. Zero total internal marks indicate zero attendance and/or no assignment submission; such cases are not permitted to appear in the End Semester Examination.</div>
+</section>
+
+<!-- 9 -->
+<section class="page" data-title="Training &amp; Placement">
+  <h2>9. Training &amp; Placement / Career Details</h2>
+  <p class="q">9.1 Career preference</p>
+  <div class="checks" data-name="career" data-opts="Core Engineering|IT/Software|Govt./PSU|Higher Studies|Entrepreneurship"></div>
+  <label class="f" style="margin-top:8px">Other<input name="career_other"></label>
+  <div class="row" style="margin-top:14px">
+    <label class="f w">9.2 Preferred job role / domain<input name="jobrole"></label>
+    <label class="f">9.3 CGPA<input type="number" step="0.01" min="0" max="10" name="cgpa"></label>
+    <div class="f">Backlogs<div class="opts"><label><input type="radio" name="backlog" value="No"> No</label><label><input type="radio" name="backlog" value="Yes"> Yes</label></div></div>
+    <label class="f">No. of backlogs<input type="number" min="0" name="backlogs_n"></label>
+    <label class="f w">9.4 Technical skills / software known<textarea name="skills" rows="2"></textarea></label>
+    <label class="f w">9.5 Certifications / online courses completed<textarea name="certs" rows="2"></textarea></label>
+    <label class="f w">9.6 Industrial visit completed<input name="visit"></label>
+  </div>
+  <p class="q">9.7 Internship / industrial training</p>
+  <div class="opts"><label><input type="radio" name="intern" value="No"> No</label><label><input type="radio" name="intern" value="Yes"> Yes</label></div>
+  <div class="row" style="margin-top:10px">
+    <label class="f">Organization<input name="intern_org"></label>
+    <label class="f">Domain<input name="intern_dom"></label>
+    <label class="f">Duration<input name="intern_dur"></label>
+    <div class="f">Certificate<div class="opts"><label><input type="radio" name="intern_cert" value="Yes"> Yes</label><label><input type="radio" name="intern_cert" value="No"> No</label></div></div>
+  </div>
+  <p class="q">9.8 Placement preparation</p>
+  <div class="checks" data-name="prep" data-opts="Resume/CV|LinkedIn|Aptitude|Coding|Technical Interview|Communication|Group Discussion|HR Interview|Mock Interview"></div>
+  <p class="q">9.9 Area where mentoring / support is required</p>
+  <div class="checks" data-name="support" data-opts="Technical Skills|Aptitude|Coding|Communication|Resume|Interview|Career Guidance|Internship|Higher Studies"></div>
+  <label class="f" style="margin-top:8px">Other<input name="support_other"></label>
+  <p class="q">9.10 Placement status</p>
+  <div class="checks" data-type="radio" data-name="pstatus" data-opts="Not Registered|Registered|Appeared in Drive|Shortlisted|Selected/Placed|Not Interested"></div>
+  <div class="row" style="margin-top:14px">
+    <label class="f w">9.11 Career goal / target organization<textarea name="goal" rows="2"></textarea></label>
+    <label class="f w">9.12 Student's major concern / requirement<textarea name="concern" rows="2"></textarea></label>
+    <label class="f w">9.13 Career guidance / counseling session<textarea name="counsel" rows="2"></textarea></label>
+    <label class="f w">9.14 Mentor's remarks / action plan<textarea name="remarks" rows="3"></textarea></label>
+    <label class="f">Next mentoring meeting date<input type="date" name="nextmeet"></label>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="page" data-title="UTU Result Status">
+  <h2>10. UTU Result Status</h2>
+  <div id="utu"></div>
+</section>
+
+<!-- 11 -->
+<section class="page" data-title="Problems / Difficulties">
+  <h2>11. Problems / Difficulties Faced by Student</h2>
+  <div id="prob"></div>
+</section>
+
+<!-- 12 -->
+<section class="page" data-title="Indiscipline">
+  <h2>12. Act of Indiscipline / Misbehaviour by Student</h2>
+  <div id="disc"></div>
+</section>
+
+<!-- 13 -->
+<section class="page" data-title="Discussion with Parents">
+  <h2>13. Discussion with Parents</h2>
+  <div class="note">If it's a mail, attach a printed copy. If the communication was by mobile, online meeting or physical meeting, record it below.</div>
+  <div id="par"></div>
+</section>
+
+<!-- 14 -->
+<section class="page" data-title="Co-curricular Activities">
+  <h2>14. Co-curricular / Extracurricular / Sports / Social Activities</h2>
+  <div id="act"></div>
+</section>
+
+<!-- 15 -->
+<section class="page" data-title="Mentoring Summary">
+  <h2>15. Student Mentoring Summary</h2>
+  <div class="row"><label class="f w">Name of the mentor<input name="mentor"></label></div>
+  <div id="summ"></div>
+  <div class="row"><label class="f">Signature of mentor<input name="mentor_sig"></label></div>
+  <div class="end">
+    {% if not readonly %}
+    <button type="button" class="pri" id="submit">Submit to mentor</button>
+    <button type="button" class="sec" id="savebtn">Save draft</button>
+    {% endif %}
+    <button type="button" class="sec" id="print">Print / Save as PDF</button>
+    <button type="button" class="sec" id="json">Download data (JSON)</button>
+  </div>
+</section>
+
+<div class="pager">
+  <button type="button" class="sec" id="prev">Previous</button>
+  <button type="button" class="pri" id="next">{% if readonly %}Next{% else %}Save &amp; continue{% endif %}</button>
+</div>
+</form>
+</div>
+
+<script id="saved-data" type="application/json">{{ saved|tojson }}</script>
+<script>
+const SAVED = JSON.parse(document.getElementById('saved-data').textContent);
+const READONLY = {{ 'true' if readonly else 'false' }};
+const SAVE_URL = "{{ url_for('save_form') }}";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const num=(a,b)=>Object.fromEntries([...Array(b-a+1)].map((_,i)=>[a+i,'number']));
+const YN=['','Yes','No'];
+
+/* ---------- table builder ---------- */
+function cell(id,r,c,o){
+  const n=`${id}[${r}][${c}]`,lab=String(o.head[c]).replace(/<[^>]*>/g,'');
+  if(o.sel&&o.sel[c])return `<select name="${n}" aria-label="${lab}">${o.sel[c].map(v=>`<option>${v}</option>`).join('')}</select>`;
+  if(o.ta&&o.ta.includes(c))return `<textarea name="${n}" rows="2" aria-label="${lab}"></textarea>`;
+  const v=(o.pre&&o.pre[r+','+c])||'';
+  return `<input type="${(o.types||{})[c]||'text'}" name="${n}" value="${v}" aria-label="${lab}">`;
+}
+function row(id,r,o){
+  return '<tr>'+o.head.map((_,c)=>
+    c===0&&o.first==='label'?`<th scope="row">${o.labels[r]}</th>`:
+    c===0&&o.first==='sn'?`<td class="sn">${r+1}</td>`:
+    `<td>${cell(id,r,c,o)}</td>`).join('')+'</tr>';
+}
+function grid(id,head,o){
+  o.head=head;o.first=o.first||'input';
+  const el=document.getElementById(id),n=o.labels?o.labels.length:o.n;
+  let h=`<div class="tw"><table><thead><tr>${head.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>`;
+  for(let r=0;r<n;r++)h+=row(id,r,o);
+  h+='</tbody></table></div>';
+  if(o.add)h+=`<button type="button" class="ghost" data-add="${id}">+ Add row</button>`;
+  el.innerHTML=h;el._o=o;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-add]');if(!b)return;
+  const el=document.getElementById(b.dataset.add),tb=$('tbody',el);
+  tb.insertAdjacentHTML('beforeend',row(el.id,tb.rows.length,el._o));
+});
+
+/* ---------- section tables ---------- */
+const years=['1st Year','2nd Year','3rd Year','4th Year'];
+grid('edu',['Exam','Percentage','School name','State of education','Year of passing'],{first:'label',labels:['1. SSC / 10th','2. HSC / 12th','3. Diploma'],types:{1:'number',4:'number'}});
+grid('family',['Member','Name','Mobile no.','Occupation','Email ID'],{first:'label',labels:['Father','Mother','Local guardian'],types:{2:'tel',4:'email'}});
+grid('fees',['Year','Amount to be paid','Amount paid','Receipt no.','Date'],{first:'label',labels:['First year','Second year','Third year','Final year','Security fees refund','Degree fees'],types:{1:'number',2:'number',4:'date'}});
+grid('schform',['Scholarship form',...years],{n:2});
+const yn={first:'label',labels:['Odd semester','Even semester'],sel:{1:YN,2:YN,3:YN,4:YN}};
+grid('reg',['Form',...years],{...yn});grid('exam',['Form',...years],{...yn});
+grid('utu',['Semester','CGPA / Percentage (%)','Result fail: write name of subject(s)','Promoted for next year?','Sign. of mentor','Sign. of HOD'],{first:'label',labels:['I','II','III','IV','V','VI','VII','VIII'],sel:{3:YN}});
+grid('prob',['Sr. No.','Date','Difficulties / problems','Sign of student','Action taken','Sign of mentor'],{first:'sn',n:5,add:1,types:{1:'date'},ta:[2,4]});
+grid('disc',['Sr. No.','Date','Difficulties / problems / query / act of indiscipline','Sign of student','Action taken','Sign of mentor'],{first:'sn',n:5,add:1,types:{1:'date'},ta:[2,4]});
+grid('par',['Date','Time','Mobile / online / physical meeting','Name of the person (parent)','Discussed point'],{n:5,add:1,types:{0:'date',1:'time'},sel:{2:['','Mobile','Online meeting','Physical meeting']},ta:[4]});
+grid('act',['Sr. No.','Club membership','Activities participated','Sports participation','Achievement / position secured','Academic year / date','Remarks'],{first:'sn',n:6,add:1});
+grid('summ',['Activity details',...[...Array(12)].map((_,i)=>`<input class="mh" name="m15[${i}]" placeholder="Month" aria-label="Month ${i+1}">`)],{first:'label',types:num(1,12),
+  labels:['No. of students mentored by counselor','Frequency of meeting','No. of problems handled','Total no. of students in extracurricular activities','Total no. of students in co-curricular activities','Total no. of students in social activities','No. of sessions held for career guidance','No. of sessions held for personality development','No. of students referred to counselor']});
+
+/* semesters (section 8) */
+let tabs='',panels='';
+for(let s=1;s<=8;s++){
+  tabs+=`<button type="button" data-sem="${s}" class="${s==1?'on':''}">Semester ${s}</button>`;
+  panels+=`<div class="sem${s==1?' on':''}" id="sem${s}"><h3>Semester ${s}</h3><h4>Class test performance</h4><div id="ct${s}"></div><h4>Monthly record</h4><div id="mr${s}"></div></div>`;
+}
+$('#semesters').innerHTML=`<div class="tabs">${tabs}</div>${panels}`;
+for(let s=1;s<=8;s++){
+  grid('ct'+s,['Subject','CT-1 (MM 30)','CT-2 (MM 30)','Makeup exam (MM 30)'],{n:5,types:num(1,3),pre:{'4,0':'Minor Subject 1'}});
+  grid('mr'+s,['Month','% Attend. (MM 10)','Assignments (MM 10)','Total internal theory marks (MM 50)','Micro project','Value added course','MOOCs courses'],{n:6,types:num(1,3)});
+}
+$('.tabs').addEventListener('click',e=>{
+  const b=e.target.closest('[data-sem]');if(!b)return;
+  $$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  $$('.sem').forEach(x=>x.classList.toggle('on',x.id==='sem'+b.dataset.sem));
+});
+
+/* checkbox / radio groups */
+$$('.checks').forEach(e=>{
+  const t=e.dataset.type||'checkbox';
+  e.innerHTML=e.dataset.opts.split('|').map(o=>`<label><input type="${t}" name="${e.dataset.name}" value="${o}"> ${o}</label>`).join('');
+});
+
+/* ---------- page navigation ---------- */
+const form=$('#form'),pages=$$('.page'),nav=$('#nav');
+let cur=0;
+pages.forEach((p,i)=>{
+  nav.insertAdjacentHTML('beforeend',`<button type="button" data-go="${i}"><span class="n">${i+1}</span><span class="t">${p.dataset.title}</span></button>`);
+});
+function show(i){
+  cur=Math.max(0,Math.min(pages.length-1,i));
+  pages.forEach((p,k)=>p.classList.toggle('on',k===cur));
+  $$('#nav button').forEach((b,k)=>{b.classList.toggle('on',k===cur);b.classList.toggle('done',k<cur)});
+  $('#ptitle').textContent=pages[cur].dataset.title;
+  $('#pcount').textContent=`· Section ${cur+1} of ${pages.length}`;
+  $('#pbar').style.width=((cur+1)/pages.length*100)+'%';
+  $('#prev').disabled=cur===0;
+  $('#next').style.display=cur===pages.length-1?'none':'';
+  scrollTo({top:0});
+}
+nav.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)show(+b.dataset.go)});
+$('#prev').onclick=()=>show(cur-1);
+$('#next').onclick=async()=>{
+  const bad=$(':invalid',pages[cur]);
+  if(bad){bad.reportValidity();return}
+  if(!READONLY&&dirty&&!(await save('draft')))return;
+  show(cur+1);
+};
+form.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT')e.preventDefault()});
+
+/* ---------- save to server / export ---------- */
+let dirty=false;
+function collect(skipPrivate){
+  const d={};
+  for(const e of form.elements){
+    if(!e.name)continue;
+    if(skipPrivate&&e.dataset.nosave!==undefined)continue;
+    if(e.type==='checkbox'||e.type==='radio'){if(e.checked)(d[e.name]=d[e.name]||[]).push(e.value)}
+    else d[e.name]=e.value;
+  }
+  d.__rows={};$$('[data-add]').forEach(b=>d.__rows[b.dataset.add]=$('tbody',document.getElementById(b.dataset.add)).rows.length);
+  return d;
+}
+function restore(d){
+  for(const[id,n]of Object.entries(d.__rows||{}))
+    while($('tbody',document.getElementById(id)).rows.length<n)$(`[data-add="${id}"]`).click();
+  for(const e of form.elements){
+    if(!e.name||!(e.name in d))continue;
+    if(e.type==='checkbox'||e.type==='radio')e.checked=d[e.name].includes(e.value);
+    else e.value=d[e.name];
+  }
+}
+function setState(t){$('#savestate').textContent=t}
+async function save(action){
+  try{
+    const r=await fetch(SAVE_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action,data:collect(false)})});
+    const res=await r.json();
+    if(!r.ok)throw new Error(res.error||'server error');
+    dirty=false;
+    setState('Saved at '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' ('+res.status+')');
+    return true;
+  }catch(err){
+    setState('Not saved');
+    alert('Could not save the form: '+err.message);
+    return false;
+  }
+}
+if(SAVED)restore(SAVED);
+if(READONLY){
+  $$('input,select,textarea',form).forEach(e=>e.disabled=true);
+  $$('[data-add]').forEach(b=>b.style.display='none');
+}else{
+  form.addEventListener('input',()=>{dirty=true;setState('Unsaved changes')});
+  form.addEventListener('change',()=>{dirty=true;setState('Unsaved changes')});
+  addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+  $('#savebtn').onclick=()=>save('draft');
+  $('#submit').onclick=async()=>{
+    const bad=$(':invalid',form);
+    if(bad){show(pages.findIndex(p=>p.contains(bad)));bad.reportValidity();return}
+    if(!confirm('Submit this form to your mentor?'))return;
+    await save('submit');
+  };
+}
+
+$('#print').onclick=()=>print();
+$('#json').onclick=()=>{
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(collect(false),null,2)],{type:'application/json'}));
+  a.download='mentoring_form_data.json';a.click();URL.revokeObjectURL(a.href);
+};
+show(0);
+</script>
+</body>
+</html>
