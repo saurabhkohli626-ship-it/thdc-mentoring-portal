@@ -29,6 +29,20 @@
       </form>
     {% endif %}
   </div>
+
+  {% if session.role == 'director' %}
+  <form method="post" action="{{ url_for('change_mentor', student_id=student.id) }}" class="inline-form">
+    <label>Change mentor
+      <select name="mentor_id">
+        <option value="">Not assigned</option>
+        {% for f in faculty %}
+          <option value="{{ f.id }}" {% if f.id == student.mentor_id %}selected{% endif %}>{{ f.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit" class="secondary">Save</button>
+  </form>
+  {% endif %}
 </div>
 
 <h3>Mentor remarks</h3>

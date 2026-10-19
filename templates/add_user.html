@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Add user{% endblock %}
+
+{% block content %}
+<h2>Add student / faculty</h2>
+
+<form method="post" class="card form-grid">
+  <label>Role
+    <select name="role" id="role" required>
+      <option value="student" {% if form.get('role') != 'faculty' %}selected{% endif %}>Student</option>
+      <option value="faculty" {% if form.get('role') == 'faculty' %}selected{% endif %}>Faculty (mentor)</option>
+    </select>
+  </label>
+  <label>Full name
+    <input name="name" value="{{ form.get('name', '') }}" required>
+  </label>
+  <label>Email
+    <input type="email" name="email" value="{{ form.get('email', '') }}" required>
+  </label>
+  <label>First password <small class="muted">(min 8 characters, user should change it later)</small>
+    <input type="password" name="password" minlength="8" required autocomplete="new-password">
+  </label>
+
+  <fieldset id="student-fields">
+    <legend>Student details</legend>
+    <label>Roll No.
+      <input name="roll_no" value="{{ form.get('roll_no', '') }}">
+    </label>
+    <label>Branch
+      <input name="branch" value="{{ form.get('branch', '') }}" placeholder="e.g. CSE">
+    </label>
+    <label>Class
+      <input name="class_name" value="{{ form.get('class_name', '') }}" placeholder="e.g. B.Tech 2nd Year">
+    </label>
+    <label>Admitted year
+      <input type="number" name="admitted_year" min="2000" max="2100" value="{{ form.get('admitted_year', '') }}">
+    </label>
+    <label>Mentor
+      <select name="mentor_id">
+        <option value="">Not assigned</option>
+        {% for f in faculty %}
+          <option value="{{ f.id }}" {% if form.get('mentor_id') == f.id|string %}selected{% endif %}>{{ f.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </fieldset>
+
+  <div><button type="submit">Create account</button></div>
+</form>
+
+<script>
+  // student details are only needed when the role is student
+  const role = document.getElementById('role');
+  const box = document.getElementById('student-fields');
+  function toggle() { box.hidden = role.value !== 'student'; }
+  role.addEventListener('change', toggle);
+  toggle();
+</script>
+{% endblock %}

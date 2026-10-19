@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}All students{% endblock %}
+
+{% block content %}
+<h2>All students ({{ students|length }})</h2>
+
+<form method="get" class="filters card">
+  <input type="search" name="q" value="{{ args.get('q', '') }}" placeholder="Search name or roll no.">
+  <select name="branch">
+    <option value="">All branches</option>
+    {% for b in branches %}
+      <option {% if args.get('branch') == b %}selected{% endif %}>{{ b }}</option>
+    {% endfor %}
+  </select>
+  <select name="status">
+    <option value="">Any form status</option>
+    {% for st in ['not started', 'draft', 'submitted', 'reviewed'] %}
+      <option {% if args.get('status') == st %}selected{% endif %}>{{ st }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+  <a class="btn light" href="{{ url_for('export_students', **args) }}">Download CSV</a>
+</form>
+
+<div class="card">
+  {% if students %}
+  <table class="list">
+    <thead>
+      <tr><th>Roll No.</th><th>Name</th><th>Branch</th><th>CGPA</th><th>Backlogs</th><th>Placement</th><th>Mentor</th><th>Form</th></tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      <tr>
+        <td>{{ s.roll_no }}</td>
+        <td><a href="{{ url_for('student_detail', student_id=s.id) }}">{{ s.name }}</a></td>
+        <td>{{ s.branch or "-" }}</td>
+        <td>{{ s.cgpa if s.cgpa is not none else "-" }}</td>
+        <td>{{ s.backlogs }}</td>
+        <td>{{ s.placement_status or "-" }}</td>
+        <td>{{ s.mentor_name or "-" }}</td>
+        <td><span class="status {{ s.form_status|replace(' ', '-') }}">{{ s.form_status }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No students match this filter.</p>
+  {% endif %}
+</div>
+{% endblock %}

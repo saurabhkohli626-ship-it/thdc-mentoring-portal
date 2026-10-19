@@ -97,13 +97,13 @@ table.list thead th { background: var(--mist); }
 .status.submitted { background: #dbeafe; }
 .status.reviewed { background: #dcfce7; }
 
-.stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
 .stat {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 16px 24px;
-  min-width: 160px;
+
 }
 .stat b { display: block; font-size: 2rem; color: var(--lake-dark); }
 .stat span { color: var(--muted); }
@@ -135,3 +135,27 @@ button.secondary:hover { background: var(--mist); }
 }
 .remark { border-top: 1px solid var(--line); padding: 10px 0; }
 .remark p { margin: 0 0 4px; white-space: pre-line; }
+
+header nav { flex-wrap: wrap; }
+
+.btn.light { background: #fff; color: var(--lake); border: 1.5px solid var(--lake); }
+.btn.light:hover { background: var(--mist); }
+
+.filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filters input, .filters select,
+.form-grid input, .form-grid select, .inline-form select {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  background: #fff;
+}
+.filters input { flex: 1 1 200px; }
+
+.form-grid { display: grid; gap: 14px; max-width: 560px; }
+.form-grid label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.form-grid fieldset { border: 1px solid var(--line); border-radius: 8px; display: grid; gap: 14px; padding: 14px; }
+.form-grid legend { font-weight: 600; color: var(--lake); padding: 0 6px; }
+
+.inline-form { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.inline-form label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }

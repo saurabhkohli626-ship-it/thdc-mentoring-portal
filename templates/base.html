@@ -14,6 +14,11 @@
     </div>
     {% if session.user_id %}
     <nav>
+      {% if session.role == 'director' %}
+        <a href="{{ url_for('director_home') }}">Dashboard</a>
+        <a href="{{ url_for('director_students') }}">Students</a>
+        <a href="{{ url_for('add_user') }}">Add user</a>
+      {% endif %}
       <span>{{ session.name }} <small>({{ session.role }})</small></span>
       <a href="{{ url_for('logout') }}">Logout</a>
     </nav>

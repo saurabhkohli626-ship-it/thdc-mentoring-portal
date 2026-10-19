@@ -1,10 +1,13 @@
+import csv
+import io
 import json
 import os
 from functools import wraps
 
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, session, flash, abort, jsonify
-from werkzeug.security import check_password_hash
+from flask import (Flask, render_template, request, redirect, url_for, session, flash, abort,
+                   jsonify, Response)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from db import query, execute
 
@@ -221,8 +224,9 @@ def student_for_staff(student_id):
 @login_required("faculty", "director")
 def student_detail(student_id):
     student = student_for_staff(student_id)
+    faculty = faculty_list() if session["role"] == "director" else []
     return render_template("student_detail.html", student=student,
-                           remarks=get_remarks(student_id))
+                           remarks=get_remarks(student_id), faculty=faculty)
 
 
 @app.route("/students/<int:student_id>/form")
@@ -266,18 +270,158 @@ def mark_reviewed(student_id):
 @app.route("/director")
 @login_required("director")
 def director_home():
-    counts = query("SELECT role, COUNT(*) AS total FROM users GROUP BY role")
-    faculty = query("""
-        SELECT u.name, u.email, COUNT(s.id) AS mentees
+    summary = query("""
+        SELECT COUNT(*) AS students,
+               COALESCE(SUM(f.status IS NULL OR f.status = 'draft'), 0) AS not_submitted,
+               COALESCE(SUM(f.status = 'submitted'), 0) AS pending_review,
+               COALESCE(SUM(f.status = 'reviewed'), 0) AS reviewed,
+               ROUND(AVG(s.cgpa), 2) AS avg_cgpa,
+               COALESCE(SUM(s.backlogs > 0), 0) AS with_backlogs
+        FROM students s
+        LEFT JOIN mentoring_forms f ON f.student_id = s.id
+    """, one=True)
+
+    branches = query("""
+        SELECT branch,
+               COUNT(*) AS students,
+               ROUND(AVG(cgpa), 2) AS avg_cgpa,
+               SUM(backlogs > 0) AS with_backlogs,
+               SUM(placement_status = 'Selected/Placed') AS placed
+        FROM students
+        GROUP BY branch
+        ORDER BY branch
+    """)
+
+    placement = query("""
+        SELECT COALESCE(placement_status, 'Not filled') AS placement, COUNT(*) AS students
+        FROM students
+        GROUP BY placement
+        ORDER BY students DESC
+    """)
+
+    mentors = query("""
+        SELECT u.id, u.name,
+               COUNT(s.id) AS mentees,
+               COALESCE(SUM(f.status = 'submitted'), 0) AS pending,
+               COALESCE(SUM(f.status = 'reviewed'), 0) AS reviewed,
+               COALESCE(SUM(s.id IS NOT NULL AND (f.status IS NULL OR f.status = 'draft')), 0) AS not_submitted
         FROM users u
         LEFT JOIN students s ON s.mentor_id = u.id
+        LEFT JOIN mentoring_forms f ON f.student_id = s.id
         WHERE u.role = 'faculty'
-        GROUP BY u.id, u.name, u.email
-        ORDER BY u.name
+        GROUP BY u.id, u.name
+        ORDER BY pending DESC, u.name
     """)
-    return render_template("director_home.html",
-                           counts={row["role"]: row["total"] for row in counts},
-                           faculty=faculty)
+
+    return render_template("director_home.html", summary=summary, branches=branches,
+                           placement=placement, mentors=mentors)
+
+
+def filtered_students(args):
+    sql = """
+        SELECT s.id, s.roll_no, u.name, u.email, s.branch, s.class_name, s.cgpa, s.backlogs,
+               s.placement_status, m.name AS mentor_name,
+               COALESCE(f.status, 'not started') AS form_status
+        FROM students s
+        JOIN users u ON u.id = s.user_id
+        LEFT JOIN users m ON m.id = s.mentor_id
+        LEFT JOIN mentoring_forms f ON f.student_id = s.id
+        WHERE 1 = 1
+    """
+    params = []
+    if args.get("q"):
+        sql += " AND (u.name LIKE %s OR s.roll_no LIKE %s)"
+        params += ["%" + args["q"].strip() + "%"] * 2
+    if args.get("branch"):
+        sql += " AND s.branch = %s"
+        params.append(args["branch"])
+    if args.get("status"):
+        sql += " AND COALESCE(f.status, 'not started') = %s"
+        params.append(args["status"])
+    sql += " ORDER BY s.roll_no"
+    return query(sql, params)
+
+
+@app.route("/director/students")
+@login_required("director")
+def director_students():
+    branches = [r["branch"] for r in query(
+        "SELECT DISTINCT branch FROM students WHERE branch IS NOT NULL ORDER BY branch")]
+    return render_template("director_students.html", students=filtered_students(request.args),
+                           branches=branches, args=request.args)
+
+
+@app.route("/director/students.csv")
+@login_required("director")
+def export_students():
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(["Roll No", "Name", "Email", "Branch", "Class", "CGPA", "Backlogs",
+                     "Placement", "Mentor", "Form status"])
+    for s in filtered_students(request.args):
+        writer.writerow([s["roll_no"], s["name"], s["email"], s["branch"], s["class_name"],
+                         s["cgpa"], s["backlogs"], s["placement_status"], s["mentor_name"],
+                         s["form_status"]])
+    return Response(out.getvalue(), mimetype="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=students.csv"})
+
+
+def faculty_list():
+    return query("SELECT id, name FROM users WHERE role = 'faculty' ORDER BY name")
+
+
+@app.route("/director/users/new", methods=["GET", "POST"])
+@login_required("director")
+def add_user():
+    form = request.form
+    if request.method == "POST":
+        name = form.get("name", "").strip()
+        email = form.get("email", "").strip().lower()
+        role = form.get("role")
+        password = form.get("password", "")
+        roll_no = form.get("roll_no", "").strip()
+
+        error = None
+        if not name or not email or role not in ("student", "faculty"):
+            error = "Name, email and role are required."
+        elif len(password) < 8:
+            error = "Password must be at least 8 characters."
+        elif query("SELECT id FROM users WHERE email = %s", (email,), one=True):
+            error = "A user with this email already exists."
+        elif role == "student" and not roll_no:
+            error = "Roll number is required for a student."
+        elif role == "student" and query("SELECT id FROM students WHERE roll_no = %s", (roll_no,), one=True):
+            error = "This roll number already exists."
+
+        if error:
+            flash(error)
+        else:
+            user_id = execute(
+                "INSERT INTO users (name, email, password_hash, role) VALUES (%s, %s, %s, %s)",
+                (name, email, generate_password_hash(password), role))
+            if role == "student":
+                execute("""
+                    INSERT INTO students (user_id, roll_no, branch, class_name, admitted_year, mentor_id)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (user_id, roll_no, form.get("branch") or None, form.get("class_name") or None,
+                      to_number(form.get("admitted_year"), int), to_number(form.get("mentor_id"), int)))
+            flash(f"{role.title()} account created for {name}.", "ok")
+            return redirect(url_for("add_user"))
+
+    return render_template("add_user.html", faculty=faculty_list(), form=form)
+
+
+@app.route("/students/<int:student_id>/mentor", methods=["POST"])
+@login_required("director")
+def change_mentor(student_id):
+    student_for_staff(student_id)
+    mentor_id = to_number(request.form.get("mentor_id"), int)
+    if mentor_id and not query("SELECT id FROM users WHERE id = %s AND role = 'faculty'",
+                               (mentor_id,), one=True):
+        abort(400)
+    execute("UPDATE students SET mentor_id = %s WHERE id = %s", (mentor_id, student_id))
+    flash("Mentor updated.", "ok")
+    return redirect(url_for("student_detail", student_id=student_id))
 
 
 @app.errorhandler(403)
