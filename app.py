@@ -70,6 +70,31 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/account/password", methods=["GET", "POST"])
+@login_required()
+def change_password():
+    if request.method == "POST":
+        current = request.form.get("current", "")
+        new = request.form.get("new", "")
+        confirm = request.form.get("confirm", "")
+        user = query("SELECT password_hash FROM users WHERE id = %s", (session["user_id"],), one=True)
+
+        if not check_password_hash(user["password_hash"], current):
+            flash("Current password is wrong.")
+        elif len(new) < 8:
+            flash("New password must be at least 8 characters.")
+        elif new != confirm:
+            flash("New password and confirm password do not match.")
+        elif new == current:
+            flash("New password must be different from the current one.")
+        else:
+            execute("UPDATE users SET password_hash = %s WHERE id = %s",
+                    (generate_password_hash(new), session["user_id"]))
+            flash("Password changed.", "ok")
+            return redirect(url_for("index"))
+    return render_template("change_password.html")
+
+
 @app.route("/student")
 @login_required("student")
 def student_home():

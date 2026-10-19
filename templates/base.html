@@ -20,6 +20,7 @@
         <a href="{{ url_for('add_user') }}">Add user</a>
       {% endif %}
       <span>{{ session.name }} <small>({{ session.role }})</small></span>
+      <a href="{{ url_for('change_password') }}">Change password</a>
       <a href="{{ url_for('logout') }}">Logout</a>
     </nav>
     {% endif %}
