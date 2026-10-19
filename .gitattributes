@@ -1,0 +1,3 @@
+# language stats on GitHub: count the Flask code, not the big form template / notebooks
+templates/*.html linguist-detectable=false
+*.ipynb linguist-documentation
